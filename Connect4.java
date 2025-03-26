@@ -25,8 +25,45 @@ class Connect4Board implements Connect4Gameplay {
       }
    }
 
+
+   @Override
+   public void play() {
+      System.out.println("Welcome to Connect 4!");
+
+      while (true) {
+         this.playGame();
+         if (this.playAgain() == false) {return;}
+   }}
+
    private void playGame() {
-      int nextMove;
+      this.firstPlayer();
+
+      while (true) {
+         this.playerMove();
+         if (this.gameOver() == true) {return;}
+         else {this.nextPlayerTurn();}
+      }}
+
+
+private boolean playAgain() {
+   char playAgain;
+   while (true) {
+      System.out.println("Do you want to play again? (y/n)");
+      playAgain = this.scanner.next().charAt(0);
+      if (playAgain == 'n') {
+         System.out.println("Thanks for playing!");
+         return false;
+      } else if (playAgain == 'y') {
+         System.out.println("Restarting board....");
+         this.newGame();
+         return true;
+      } else {
+         System.out.println("Invalid input. Please try again.");
+      }
+   }
+}
+
+   private void firstPlayer() {
       int firstPlayer;
 
       while (true) {
@@ -44,65 +81,48 @@ class Connect4Board implements Connect4Gameplay {
             this.scanner.next();
             }
       }
+   }
 
-      while (true) {
-         while (true){
-            System.out.format("Player %d, it's your turn! Enter a column number between 1 and 7: \n", ((curPlayer == 'X') ? 1 : 2)); 
-            this.display();
-            try {
-               nextMove = this.scanner.nextInt();
-            } catch (InputMismatchException e) {
-               System.out.println("Invalid input. Please try again.");
-               this.scanner.next();
-               continue;
-            }
-            if (this.isValidMove(nextMove - 1) == false){
-               System.out.println("Invalid move. Try again.");
-            } else break;
-               
+   private void playerMove() {
+      int nextMove;
+
+      while (true){
+         System.out.format("Player %d, it's your turn! Enter a column number between 1 and 7: \n", ((curPlayer == 'X') ? 1 : 2)); 
+         this.display();
+         try {
+            nextMove = this.scanner.nextInt();
+         } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please try again.");
+            this.scanner.next();
+            continue;
          }
+         if (this.isValidMove(nextMove - 1) == false){
+            System.out.println("Invalid move. Try again.");
+         } else break;
+            
+      }
 
-         this.makeMove(nextMove - 1);
+      this.makeMove(nextMove - 1);
+   }
 
-         if (this.isWin() == true){
-            this.display();
-            System.out.format("Player %d wins!\n", ((this.curPlayer == 'X') ? 1 : 2));
-            return;
-         }
+   private boolean gameOver() {
+      if (this.isWin() == true){
+         this.display();
+         System.out.format("Player %d wins!\n", ((this.curPlayer == 'X') ? 1 : 2));
+         return true;
+      }
 
-         else if (this.isDraw() == true){
-            this.display();
-            System.out.println("It's a draw!");
-            return;
-         }
-         this.nextPlayerTurn();
-      }}
+      else if (this.isDraw() == true){
+         this.display();
+         System.out.println("It's a draw!");
+         return true;
+      }
+      return false;
+   }
 
    private void nextPlayerTurn() {
       this.curPlayer = (this.curPlayer == 'X') ? 'O' : 'X';
    }
-
-   public void play() {
-      System.out.println("Welcome to Connect 4!");
-
-      while (true) {
-         this.playGame();
-         
-         while (true) {
-            System.out.println("Do you want to play again? (y/n)");
-            char playAgain = this.scanner.next().charAt(0);
-            if (playAgain == 'n') {
-               System.out.println("Thanks for playing!");
-               return;
-            } else if (playAgain == 'y') {
-               System.out.println("Restarting board....");
-               this.newGame();
-               break;
-            } else {
-               System.out.println("Invalid input. Please try again.");
-            }
-         }
-   }}
 
    private void display(){
          System.out.println("\n  1   2   3   4   5   6   7  ");
