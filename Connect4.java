@@ -1,38 +1,111 @@
-/* Create a Connect 4 board game that can be played between two human players.
- * The game should be played on a 6x7 grid.
- * The game should be able to detect a win or a draw.
- * The game should be able to detect an invalid move.
- * 
- * When it's a player's turn, the state of the board will be displayed, 
- * and they can make a move, and the game will update the board. Player 1's
- * moves will be represented by 'X' and Player 2's moves will be represented
- * by 'O'.
- */
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+interface Connect4Gameplay {
+   public void play();
+}
 
- class Connect4Board {
-   private char[][] board;
+class Connect4Board implements Connect4Gameplay {
+   final private char[][] board;
    private int emptySpaces;
-   private int[] lastPosPlayed; // [row, column]
-   private boolean gameOver;
+   final private int[] lastPosPlayed; // [row, column]
+   final private Scanner scanner;
+   private char curPlayer;
 
    public Connect4Board() { 
       board = new char[6][7];
       lastPosPlayed = new int[2];
-      gameOver = true;
-
+      scanner = new Scanner(System.in);
       emptySpaces = 42;
+
       for(int i = 0; i < 6; i++){
-            for(int j = 0; j < 7; j++){
-            board[i][j] = ' ';
-            }
+         for(int j = 0; j < 7; j++){
+         board[i][j] = ' ';
+         }
       }
    }
 
-   public void display(){
+   private void playGame() {
+      int nextMove;
+      int firstPlayer;
 
+      while (true) {
+         System.out.println("Who will go first? (1 or 2)");
+         try {
+            firstPlayer = this.scanner.nextInt();
+            if (firstPlayer != 1 && firstPlayer != 2) {
+               System.out.println("Invalid player number. Please try again.");
+            } else {
+               this.curPlayer = (firstPlayer == 1) ? 'X' : 'O';
+               break;
+            }
+         } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please try again.");
+            this.scanner.next();
+            }
+      }
+
+      while (true) {
+         while (true){
+            System.out.format("Player %d, it's your turn! Enter a column number between 1 and 7: \n", ((curPlayer == 'X') ? 1 : 2)); 
+            this.display();
+            try {
+               nextMove = this.scanner.nextInt();
+            } catch (InputMismatchException e) {
+               System.out.println("Invalid input. Please try again.");
+               this.scanner.next();
+               continue;
+            }
+            if (this.isValidMove(nextMove - 1) == false){
+               System.out.println("Invalid move. Try again.");
+            } else break;
+               
+         }
+
+         this.makeMove(nextMove - 1);
+
+         if (this.isWin() == true){
+            this.display();
+            System.out.format("Player %d wins!\n", ((this.curPlayer == 'X') ? 1 : 2));
+            return;
+         }
+
+         else if (this.isDraw() == true){
+            this.display();
+            System.out.println("It's a draw!");
+            return;
+         }
+         this.nextPlayerTurn();
+      }}
+
+   private void nextPlayerTurn() {
+      this.curPlayer = (this.curPlayer == 'X') ? 'O' : 'X';
+   }
+
+   public void play() {
+      System.out.println("Welcome to Connect 4!");
+
+      while (true) {
+         this.playGame();
+         
+         while (true) {
+            System.out.println("Do you want to play again? (y/n)");
+            char playAgain = this.scanner.next().charAt(0);
+            if (playAgain == 'n') {
+               System.out.println("Thanks for playing!");
+               return;
+            } else if (playAgain == 'y') {
+               System.out.println("Restarting board....");
+               this.newGame();
+               break;
+            } else {
+               System.out.println("Invalid input. Please try again.");
+            }
+         }
+   }}
+
+   private void display(){
+         System.out.println("\n  1   2   3   4   5   6   7  ");
          for(int i = 0; i < 6; i++){
             System.out.println(" --- --- --- --- --- --- --- ");
 
@@ -44,7 +117,7 @@ import java.util.Scanner;
          System.out.println(" --- --- --- --- --- --- --- ");
    }
 
-   public void newGame(){
+   private void newGame(){
          for(int i = 0; i < 6; i++){
             for(int j = 0; j < 7; j++){
                this.board[i][j] = ' ';
@@ -53,11 +126,11 @@ import java.util.Scanner;
          emptySpaces = 42;
    }
 
-   public void makeMove(int column, char player){
+   private void makeMove(int column){
          emptySpaces--;
          for (int i = 5; i >= 0; i--){
                if(this.board[i][column] == ' '){
-                  this.board[i][column] = player;
+                  this.board[i][column] = this.curPlayer;
                   lastPosPlayed[0] = i;
                   lastPosPlayed[1] = column;
                   break;
@@ -65,29 +138,15 @@ import java.util.Scanner;
          }
    }
 
-   public boolean isDraw() {
+   private boolean isDraw() {
          return (emptySpaces == 0);
    }
 
-   public boolean isWin(char curPlayer) {
-         // check vertical, horizontal, and diagonal from the last position played.
-         int row = this.lastPosPlayed[0];
-         int column = this.lastPosPlayed[1];
-         int count = 0;
+   private boolean isVerticalWin(int column) {
+      int count = 0;
 
-         // if the sum of the current player's symbols totals 4, they win.
-         for (int i = 0; i < this.board.length; i++) {
-               if (this.board[i][column] == curPlayer) {
-                  count++;
-                  if (count == 4) {
-                     return true;
-                  }
-               } else {
-                  count = 0;
-               }
-         } count = 0;
-         for (int j = 0; j < this.board[row].length; j++) {
-            if (this.board[row][j] == curPlayer) {
+      for (int i = 0; i < this.board.length; i++) {
+            if (this.board[i][column] == this.curPlayer) {
                count++;
                if (count == 4) {
                   return true;
@@ -95,16 +154,34 @@ import java.util.Scanner;
             } else {
                count = 0;
             }
-      } 
-      
-      count = 1;
-      // check diagonal
+      }
+      return false;
+   }
+
+   private boolean isHorizontalWin(int row) {
+      int count = 0;
+
+      for (int j = 0; j < this.board[row].length; j++) {
+            if (this.board[row][j] == this.curPlayer) {
+               count++;
+               if (count == 4) {
+                  return true;
+               }
+            } else {
+               count = 0;
+            }
+      }
+      return false;
+   }
+   private boolean isLeftDiagonalWin(int row, int column) {
+      int count = 1;
+
       int i = row;
       int j = column;
       while (i > 0 && j > 0) {
          i--;
          j--;
-         if (this.board[i][j] == curPlayer) {
+         if (this.board[i][j] == this.curPlayer) {
             count++;
             if (count == 4) {
                return true;
@@ -119,7 +196,7 @@ import java.util.Scanner;
       while (i < 5 && j < 6) {
          i++;
          j++;
-         if (this.board[i][j] == curPlayer) {
+         if (this.board[i][j] == this.curPlayer) {
             count++;
             if (count == 4) {
                return true;
@@ -130,6 +207,57 @@ import java.util.Scanner;
       }
 
       return false;
+   }
+
+   private boolean isRightDiagonalWin(int row, int column) {
+      int count = 1;
+
+      int i = row;
+      int j = column;
+      while (i > 0 && j < 6) {
+         i--;
+         j++;
+         if (this.board[i][j] == this.curPlayer) {
+            count++;
+            if (count == 4) {
+               return true;
+            }
+         } else {
+            break;
+         }
+      }
+
+      i = row;
+      j = column;
+      while (i < 5 && j > 0) {
+         i++;
+         j--;
+         if (this.board[i][j] == this.curPlayer) {
+            count++;
+            if (count == 4) {
+               return true;
+            }
+         } else {
+            break;
+         }
+      }
+
+      return false;
+   }
+   private boolean isDiagonalWin(int row, int column) {
+      if (this.isLeftDiagonalWin(row, column) || this.isRightDiagonalWin(row, column)) {
+         return true;
+      } else { return false;}
+   }
+
+
+   private boolean isWin() {
+         int row = this.lastPosPlayed[0];
+         int column = this.lastPosPlayed[1];
+
+         if (this.isVerticalWin(column) || this.isHorizontalWin(row) || this.isDiagonalWin(row, column)) {
+            return true;
+         } else {return false;}
    }
 
    public boolean isValidMove(int column) {
@@ -146,60 +274,6 @@ import java.util.Scanner;
 public class Connect4 {
    public static void main(String[] args){
          // 6 rows by 7 column grid
-         System.out.println("Welcome to Connect 4!");
-         Scanner scanner = new Scanner(System.in);
          Connect4Board board = new Connect4Board();
-
-         System.out.println("Who will go first? (1 or 2)");
-         int firstPlayer = scanner.nextInt();
-         char curPlayer = (firstPlayer == 1) ? 'X' : 'O';
-
-         int nextMove;
-         while (true) {
-            while(true){
-               System.out.format("Player %d, it's your turn! Enter a column number between 1 and 7: \n", ((curPlayer == 'X') ? 1 : 2)); 
-               board.display(); 
-               try {
-                  nextMove = scanner.nextInt();
-               } catch (InputMismatchException e) {
-                  System.out.println("Invalid input. Please try again.");
-                  scanner.next();
-                  continue;
-               }
-               if (board.isValidMove(nextMove - 1) == false){
-                  System.out.println("Invalid move. Try again.");
-               } else break;
-                  
-            }
-         board.makeMove(nextMove - 1, curPlayer);
-         boolean gameOver = board.isWin(curPlayer);
-         if (gameOver == true){
-            board.display();
-            System.out.format("Player %d wins!\n", ((curPlayer == 'X') ? 1 : 2));}
-
-         else if (board.isDraw() == true){
-            gameOver = true;
-            board.display();
-            System.out.println("It's a draw!");
-         }
-         while (gameOver == true){
-            System.out.println("Do you want to play again? (y/n)");
-            char playAgain = scanner.next().charAt(0);
-            if (playAgain == 'n') {
-               System.out.println("Thanks for playing!");
-               return;
-            } else if (playAgain == 'y') {
-               System.out.println("Restarting board....");
-               board.newGame();
-
-               System.out.println("Who will go first? (1 or 2)");
-               firstPlayer = scanner.nextInt();
-               curPlayer = (firstPlayer == 1) ? 'X' : 'O';
-               break;
-            } else {
-               System.out.println("Invalid input. Please try again.");
-            }
-         }
-         curPlayer = (curPlayer == 'X') ? 'O' : 'X';
-   }}
-}
+         board.play();
+}}
