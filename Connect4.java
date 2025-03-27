@@ -1,5 +1,10 @@
+
+
+import java.applet.AudioClip;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.io.File;
+import javax.sound.sampled.*;
 
 interface Connect4Gameplay {
    public void play();
@@ -11,8 +16,20 @@ class Connect4Board implements Connect4Gameplay {
    final private int[] lastPosPlayed; // [row, column]
    final private Scanner scanner;
    private char curPlayer;
+   final private Clip victoryClip;
 
    public Connect4Board() { 
+      String victoryAudioPath = "./audio_clips/connect4_victory.wav";
+      try {
+         File audioFile = new File(victoryAudioPath);
+         AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+         victoryClip = AudioSystem.getClip();
+         victoryClip.open(audioStream);
+         victoryClip.setLoopPoints(0, -1);
+      } catch (Exception e) {
+         System.out.println("Error loading audio file.");
+         throw new RuntimeException(e);
+      }
       board = new char[6][7];
       lastPosPlayed = new int[2];
       scanner = new Scanner(System.in);
@@ -24,7 +41,6 @@ class Connect4Board implements Connect4Gameplay {
          }
       }
    }
-
 
    @Override
    public void play() {
@@ -105,8 +121,14 @@ private boolean playAgain() {
       this.makeMove(nextMove - 1);
    }
 
+   private void playVictoryAudio() {
+      System.out.println("Victory sound playing...");
+      this.victoryClip.loop(0);
+   }
+
    private boolean gameOver() {
       if (this.isWin() == true){
+         this.playVictoryAudio();
          this.display();
          System.out.format("Player %d wins!\n", ((this.curPlayer == 'X') ? 1 : 2));
          return true;
