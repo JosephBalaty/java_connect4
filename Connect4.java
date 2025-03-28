@@ -17,6 +17,10 @@ class Connect4Board implements Connect4Gameplay {
    final private Scanner scanner;
    private char curPlayer;
    final private Clip victoryClip;
+   private final String ANSI_RED;
+   private final String ANSI_BLUE;
+   private final String ANSI_RESET;
+
 
    public Connect4Board() { 
       String victoryAudioPath = "./audio_clips/connect4_victory.wav";
@@ -34,6 +38,9 @@ class Connect4Board implements Connect4Gameplay {
       lastPosPlayed = new int[2];
       scanner = new Scanner(System.in);
       emptySpaces = 42;
+      ANSI_RED = "\u001B[31m";
+      ANSI_BLUE = "\u001B[34m";
+      ANSI_RESET = "\u001B[0m";
 
       for(int i = 0; i < 6; i++){
          for(int j = 0; j < 7; j++){
@@ -152,7 +159,8 @@ private boolean playAgain() {
             System.out.println(" --- --- --- --- --- --- --- ");
 
                for(int j = 0; j < 7; j++){
-                  System.out.print("| " + this.board[i][j] + " ");
+                  String curColor = (this.board[i][j] == 'X') ? ANSI_RED : ANSI_BLUE;
+                  System.out.print("| " + curColor + this.board[i][j] + this.ANSI_RESET + " ");
                }
                System.out.println("|");
          }
