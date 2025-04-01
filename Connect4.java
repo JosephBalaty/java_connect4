@@ -17,18 +17,25 @@ class Connect4Board implements Connect4Gameplay {
    final private Scanner scanner;
    private char curPlayer;
    final private Clip victoryClip;
+   final private Clip introClip;
    private final String ANSI_RED;
    private final String ANSI_BLUE;
    private final String ANSI_RESET;
 
 
    public Connect4Board() { 
+      String introAudioPath = "./audio_clips/connect4_intro.wav";
       String victoryAudioPath = "./audio_clips/connect4_victory.wav";
       try {
-         File audioFile = new File(victoryAudioPath);
-         AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+         File audioFile1 = new File(victoryAudioPath);
+         File audioFile2 = new File(introAudioPath);
+         AudioInputStream audioStream2 = AudioSystem.getAudioInputStream(audioFile2);
+         AudioInputStream audioStream1 = AudioSystem.getAudioInputStream(audioFile1);
+         introClip = AudioSystem.getClip();
          victoryClip = AudioSystem.getClip();
-         victoryClip.open(audioStream);
+         introClip.open(audioStream2);
+         victoryClip.open(audioStream1);
+         introClip.setLoopPoints(0, -1);
          victoryClip.setLoopPoints(0, -1);
       } catch (Exception e) {
          System.out.println("Error loading audio file.");
@@ -52,6 +59,7 @@ class Connect4Board implements Connect4Gameplay {
    @Override
    public void play() {
       System.out.println("Welcome to Connect 4!");
+      this.playIntroAudio();
 
       while (true) {
          this.playGame();
@@ -128,8 +136,11 @@ private boolean playAgain() {
       this.makeMove(nextMove - 1);
    }
 
+   private void playIntroAudio() {
+      this.introClip.loop(0);
+   }
+
    private void playVictoryAudio() {
-      System.out.println("Victory sound playing...");
       this.victoryClip.loop(0);
    }
 
