@@ -1,3 +1,1 @@
-./connect4.class
-./Connect4Board.class
-./Connect4Gameplay.class
+*.class
